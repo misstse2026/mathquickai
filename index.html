@@ -310,20 +310,20 @@
     <div id="s-start" class="screen active">
         <h1>⚡ 速算擂台 ⚡</h1>
         <p class="subtitle">🥊 SPEED MATH ARENA (iPad Edition) 🥊</p>
-        <button class="btn btn-kids" onclick="prep('kids')">🍎 幼兒圖像組 / Kids Count (3-6)</button>
-        <button class="btn btn-primary" onclick="prep('primary')">🎒 小學基礎挑戰 / Primary Math (7-12)</button>
-        <button class="btn btn-adults" onclick="prep('adults')">⚡ 居民競速組 / Speed Master (13+)</button>
-        <button class="btn btn-ai" onclick="openAiDifficultySelect()">🤖 AI 擂台對決 / vs AI Bot</button>
-        <button class="btn btn-sec" onclick="openLB('kids')">🏆 擂台英雄榜 / Leaderboard</button>
+        <button class="btn btn-kids" onclick="playSfx('btn'); prep('kids')">🍎 幼兒圖像組 / Kids Count (3-6)</button>
+        <button class="btn btn-primary" onclick="playSfx('btn'); prep('primary')">🎒 小學基礎挑戰 / Primary Math (7-12)</button>
+        <button class="btn btn-adults" onclick="playSfx('btn'); prep('adults')">⚡ 居民競速組 / Speed Master (13+)</button>
+        <button class="btn btn-ai" onclick="playSfx('btn'); openAiDifficultySelect()">🤖 AI 擂台對決 / vs AI Bot</button>
+        <button class="btn btn-sec" onclick="playSfx('btn'); openLB('kids')">🏆 擂台英雄榜 / Leaderboard</button>
     </div>
 
     <div id="s-ai-select" class="screen">
         <h2 style="text-align:center; color:var(--gold); margin-bottom:8px; font-size:28px;">🤖 選擇 AI 對戰難度</h2>
         <p style="text-align:center; color:#CBD5E1; margin-bottom:18px;">兩邊獨立題目！與 AI 在 60 秒內對決！</p>
-        <button class="btn btn-adults" onclick="prep('ai', 'easy')">🟢 菜鳥 Bot (幼兒水果數數)</button>
-        <button class="btn btn-primary" onclick="prep('ai', 'medium')">🟡 職業 Bot (小學加法乘法)</button>
-        <button class="btn btn-kids" onclick="prep('ai', 'hard')">🔴 拳王 Bot (居民加減乘除)</button>
-        <button class="btn btn-sec" onclick="nav('s-start')">⬅️ 返回主選單</button>
+        <button class="btn btn-adults" onclick="playSfx('btn'); prep('ai', 'easy')">🟢 菜鳥 Bot (幼兒水果數數)</button>
+        <button class="btn btn-primary" onclick="playSfx('btn'); prep('ai', 'medium')">🟡 職業 Bot (小學加法乘法)</button>
+        <button class="btn btn-kids" onclick="playSfx('btn'); prep('ai', 'hard')">🔴 拳王 Bot (居民加減乘除)</button>
+        <button class="btn btn-sec" onclick="playSfx('btn'); nav('s-start')">⬅️ 返回主選單</button>
     </div>
 
     <div id="s-game" class="screen">
@@ -370,32 +370,37 @@
         
         <div id="save-score-area">
             <input type="text" id="p-name" class="input-box" placeholder="輸入暱稱 / Enter Your Name" maxlength="12">
-            <button class="btn btn-adults" onclick="saveScore()">🚀 登錄金腰帶 / Save Score</button>
+            <button class="btn btn-adults" id="sub-btn" onclick="saveScore()">🚀 登錄金腰帶 / Save Score</button>
         </div>
 
-        <button class="btn btn-sec" onclick="nav('s-start')">🏠 主選單 / Main Menu</button>
+        <button class="btn btn-sec" onclick="playSfx('btn'); nav('s-start')">🏠 主選單 / Main Menu</button>
     </div>
 
     <div id="s-lb" class="screen">
         <h2 style="text-align:center; color:var(--gold); margin-bottom:12px; font-size:26px;">🏆 擂台英雄榜 Leaderboard 🏆</h2>
         <div class="lb-tabs">
-            <button class="tab-btn" id="tab-kids" onclick="renderLB('kids')">🍎 幼兒 Kids</button>
-            <button class="tab-btn" id="tab-primary" onclick="renderLB('primary')">🎒 小學 Primary</button>
-            <button class="tab-btn" id="tab-adults" onclick="renderLB('adults')">⚡ 居民 Adult</button>
+            <button class="tab-btn" id="tab-kids" onclick="playSfx('btn'); openLB('kids')">🍎 幼兒 Kids</button>
+            <button class="tab-btn" id="tab-primary" onclick="playSfx('btn'); openLB('primary')">🎒 小學 Primary</button>
+            <button class="tab-btn" id="tab-adults" onclick="playSfx('btn'); openLB('adults')">⚡ 居民 Adult</button>
         </div>
         <div class="lb-data" id="lb-data"></div>
-        <button class="btn btn-sec" onclick="nav('s-start')">🏠 主選單 / Main Menu</button>
+        <button class="btn btn-sec" onclick="playSfx('btn'); nav('s-start')">🏠 主選單 / Main Menu</button>
     </div>
 </div>
 
 <script>
+    // 🔗 Google Apps Script 雲端英雄榜 API 網址
+    const API_URL = "https://script.google.com/macros/s/AKfycbydFE_euQlzAatY-voC3EAHWaZwQ5lchnNNfAn4IoovRmk1STMzUi39cyZmSQ3Bg3gGew/exec";
+
     let mode='', aiLevel='easy', score=0, aiScore=0, combo=0, time=60, timer=null;
     let pAns=0, aiAns=0, isAnswering=false;
     let aiTimer = null;
     let usedKeysP = new Set();
     let usedKeysAI = new Set();
+    let globalCloudData = null;
     const fruits=['🍎','🍌','🍇','🍊','🍓','🍉'];
 
+    /* 存取 LocalStorage 保底數據 */
     function getStoredData(key) {
         try {
             let data = localStorage.getItem(key);
@@ -407,7 +412,7 @@
         try { localStorage.setItem(key, JSON.stringify(data)); } catch(e) {}
     }
 
-    /* 音效系統 */
+    /* 🔊 音效與背景音樂系統 (Web Audio API) */
     let audioCtx = null, bgmTimeout = null, stepCount = 0;
 
     function initAudio() {
@@ -431,6 +436,15 @@
         } catch(e) {}
     }
 
+    function playSfx(type) {
+        initAudio();
+        if(!audioCtx) return;
+        if(type === 'btn') playTone(400, 0.06, 'sine', 0.1);
+        else if(type === 'correct') playTone(523.25, 0.15, 'sine', 0.15);
+        else if(type === 'wrong') playTone(150, 0.2, 'sawtooth', 0.15);
+        else if(type === 'over') playTone(200, 0.6, 'sawtooth', 0.15);
+    }
+
     function scheduleNextNote() {
         if (time <= 0) return;
         stepCount++;
@@ -444,6 +458,7 @@
     function startMusic() { stopMusic(); initAudio(); stepCount = 0; scheduleNextNote(); }
     function stopMusic() { if (bgmTimeout) { clearTimeout(bgmTimeout); bgmTimeout = null; } }
 
+    /* 敏感字詞過濾 */
     const badWords = ['屌', '𨳒', '閪', '𨳍', '柒', '鳩', '𨳊', '撚', '𨶙', '仆街', '冚家鏟', '咸家鏟', '鹹家鏟', '小人', '9up', '167', '777', '999', '皮股', '笨柒', '笨七', '幹', '靠', '操', '屎', '尿', '賤', '白痴', '笨旦', '笨蛋', '三小', '靠北', '死', '鬼', 'fuck', 'shit', 'bitch', 'ass', 'bastard', 'crap', 'dick', 'pussy', 'damn', 'wtf'];
 
     function filterBadWords(input) {
@@ -598,10 +613,10 @@
                 if(isAnswering) return;
                 isAnswering = true;
                 if(o === pAns) {
-                    b.classList.add('correct-btn'); playTone(523.25, 0.15, 'sine', 0.15);
+                    b.classList.add('correct-btn'); playSfx('correct');
                     combo++; score += 10 + (combo >= 3 ? 5 : 0);
                 } else {
-                    b.classList.add('wrong-btn'); playTone(150, 0.2, 'sawtooth', 0.15); combo = 0;
+                    b.classList.add('wrong-btn'); playSfx('wrong'); combo = 0;
                 }
                 document.getElementById('c-count').innerText = combo;
                 document.getElementById('t-score').innerText = score;
@@ -650,7 +665,7 @@
     }
 
     function endGame() {
-        clearInterval(timer); clearTimeout(aiTimer); stopMusic(); playTone(200, 0.6, 'sawtooth', 0.15);
+        clearInterval(timer); clearTimeout(aiTimer); stopMusic(); playSfx('over');
 
         const titles = {
             kids:'🍎 幼兒圖像組 / Kids Count Mode', 
@@ -666,7 +681,6 @@
             if(score > aiScore) playTone(880, 0.4, 'triangle', 0.2);
             document.getElementById('r-main-heading').innerText = resultText;
             document.getElementById('r-score').innerText = `玩家 ${score} 分 vs AI ${aiScore} 分`;
-            /* AI 對決不需要登錄名字，隱藏輸入區域 */
             document.getElementById('save-score-area').style.display = 'none';
         } else {
             document.getElementById('r-main-heading').innerText = '🥊 K.O. 賽事結束 / MATCH OVER!';
@@ -677,28 +691,75 @@
         nav('s-result');
     }
 
+    /* ☁️ 上傳成績（同步存至 LocalStorage 與 Google Apps Script API） */
     function saveScore() {
+        playSfx('btn');
         let rawName = document.getElementById('p-name').value.trim() || 'Champion';
         let cleanName = filterBadWords(rawName);
+
+        // 1. 本地 LocalStorage 儲存（保底）
         let storeKey = 'speed_math_lb_' + mode;
         let list = getStoredData(storeKey);
         list.push({name: cleanName, score: score, date: new Date().toLocaleDateString()});
         list.sort((a,b)=>b.score-a.score);
         setStoredData(storeKey, list.slice(0, 10));
-        openLB(mode);
+
+        // 2. 上傳 Google Apps Script 雲端
+        let subBtn = document.getElementById('sub-btn');
+        subBtn.innerText = '⏳ 雲端同步中...';
+        subBtn.disabled = true;
+
+        fetch(API_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: cleanName, score: score, mode: mode })
+        })
+        .then(() => {
+            subBtn.innerText = '🚀 登錄金腰帶 / Save Score';
+            subBtn.disabled = false;
+            openLB(mode);
+        })
+        .catch(() => {
+            subBtn.innerText = '🚀 登錄金腰帶 / Save Score';
+            subBtn.disabled = false;
+            openLB(mode);
+        });
     }
 
-    function openLB(targetMode) { stopMusic(); nav('s-lb'); renderLB(targetMode); }
+    /* 🏆 讀取並展示英雄榜（雲端優先，離線自動切換本地） */
+    function openLB(targetMode) {
+        stopMusic();
+        nav('s-lb');
+        renderLB(targetMode);
+
+        fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+            globalCloudData = data;
+            renderLB(targetMode);
+        })
+        .catch(() => {
+            // 雲端連線失敗時使用本地備份數據
+            renderLB(targetMode);
+        });
+    }
 
     function renderLB(tabMode) {
         document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
         let activeTab = document.getElementById('tab-'+tabMode);
         if(activeTab) activeTab.classList.add('active');
-        
-        let storeKey = 'speed_math_lb_' + tabMode;
-        let list = getStoredData(storeKey);
+
+        let list = [];
+        if (globalCloudData && globalCloudData[tabMode]) {
+            list = globalCloudData[tabMode];
+        } else {
+            let storeKey = 'speed_math_lb_' + tabMode;
+            list = getStoredData(storeKey);
+        }
+
         let box = document.getElementById('lb-data');
-        if(!list || list.length===0) {
+        if(!list || list.length === 0) {
             box.innerHTML = '<p style="text-align:center; color:#888; padding:20px;">暫無紀錄 / No Record</p>';
         } else {
             box.innerHTML = list.map((item, i)=>`
