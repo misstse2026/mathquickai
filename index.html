@@ -614,9 +614,14 @@
                 isAnswering = true;
                 if(o === pAns) {
                     b.classList.add('correct-btn'); playSfx('correct');
-                    combo++; score += 10 + (combo >= 3 ? 5 : 0);
+                    combo++; 
+                    // 答對 +10 分，連勝額外加分 (Combo ≥ 3 額外 +5 分)
+                    score += 10 + (combo >= 3 ? 5 : 0);
                 } else {
-                    b.classList.add('wrong-btn'); playSfx('wrong'); combo = 0;
+                    b.classList.add('wrong-btn'); playSfx('wrong'); 
+                    combo = 0;
+                    // 答錯 -5 分，最低扣至 0 分
+                    score = Math.max(0, score - 5);
                 }
                 document.getElementById('c-count').innerText = combo;
                 document.getElementById('t-score').innerText = score;
@@ -658,6 +663,8 @@
                 document.getElementById('ai-score-tag').innerText = aiScore + ' 分';
                 statusText.innerText = '🤖 AI 選了：答對！'; badge.innerText = `${aiChoice} (✓)`; badge.style.color = '#00C853';
             } else {
+                aiScore = Math.max(0, aiScore - 5);
+                document.getElementById('ai-score-tag').innerText = aiScore + ' 分';
                 statusText.innerText = '🤖 AI 選了：答錯！'; badge.innerText = `${aiChoice} (✗)`; badge.style.color = '#FF1744';
             }
             setTimeout(() => { if(time > 0) { nextAiQ(); scheduleAiAnswer(); } }, 800);
@@ -768,6 +775,11 @@
                     <span style="color:var(--gold); font-weight:bold;">${item.score} pts</span>
                 </div>
             `).join('');
+        }
+    }
+</script>
+</body>
+</html>
         }
     }
 </script>
